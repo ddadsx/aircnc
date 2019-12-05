@@ -30,12 +30,13 @@ export default function List({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        marginTop: 30,
     },
 
     logo: {
         height: 32,
         resizeMode: "contain",
         alignSelf: 'center',
-        marginTop: 40,
+        marginTop: 10,
     },
 });
