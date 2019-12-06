@@ -3,14 +3,37 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 
+require('dotenv/config');
+
+const socketio = require('socket.io');
+const http = require('http');
+
 const routes = require('./routes');
 
 const app = express();
+const server = http.Server(app);
+const io = socketio(server);
 
-mongoose.connect('mongodb+srv://omnistack:omnistack@aircnc-kpq8y.mongodb.net/semana09?retryWrites=true&w=majority', {
+
+mongoose.connect(process.env.MONGO_CONN, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
+
+const connectedUsers = {};
+
+io.on('connection', socket => {
+    const { user_id } = socket.handshake.query;
+
+    connectedUsers[user_id] = socket.id;
+});
+
+    app.use((req, res, next) => {
+        req.io = io;
+        req.connectedUsers = connectedUsers;
+
+        return next();
+    });
 
 /**
  * primeiro parametro: rota do usuario
@@ -21,9 +44,9 @@ mongoose.connect('mongodb+srv://omnistack:omnistack@aircnc-kpq8y.mongodb.net/sem
  * res devolve resposta pra requisição
  */
 
- // req.query = Acessar query params (para filtros)
- // req.params = Acessar route params (para edicao e  delete)
- // req.body = Acessar corpo da requisição ( para criação, edição de registros)
+// req.query = Acessar query params (para filtros)
+// req.params = Acessar route params (para edicao e  delete)
+// req.body = Acessar corpo da requisição ( para criação, edição de registros)
 
 //app.use(cors({ origin: 'http://localhost:3333' })); // define endereço especifico para acessar api
 app.use(cors()); // qqer aplicação pode acessar a api
@@ -32,4 +55,4 @@ app.use('/files', express.static(path.resolve(__dirname, '..', 'uploads')));
 app.use(routes);
 
 
-app.listen(3333);
+server.listen(3333);
